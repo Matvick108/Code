@@ -29,6 +29,7 @@
             width: 20px;
             height: 20px;
             margin: 5px;
+            transition: background-color 0.3s ease;
         }
         .filled {
             background-color: #000;
@@ -44,15 +45,21 @@
         #success-message {
             color: green;
         }
-        .shake {
-            animation: shake 0.5s;
+        #hidden-input {
+            position: absolute;
+            top: -1000px;
+            left: -1000px;
+            opacity: 0;
         }
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
+        @media (max-width: 600px) {
+            .pin-circle {
+                width: 15px;
+                height: 15px;
+                margin: 3px;
+            }
+            #pin-container p, #error-message, #success-message {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -68,12 +75,13 @@
         <p id="error-message">Неверный пароль. Пожалуйста, попробуйте еще раз.</p>
         <p id="success-message">Вот ваш код для обновления Minecraft -Id74838848</p>
     </div>
-
+    <input type="text" id="hidden-input" maxlength="4" inputmode="numeric" autofocus>
     <script>
         let pin = [];
         let attemptCount = 0;
         let success = false;
         const pinCircles = document.querySelectorAll('.pin-circle');
+        const hiddenInput = document.getElementById('hidden-input');
 
         function updatePinDisplay(error = false) {
             pinCircles.forEach((circle, index) => {
@@ -90,27 +98,14 @@
             });
         }
 
-        function shakeAndVibrate() {
-            document.getElementById('pin-container').classList.add('shake');
-            navigator.vibrate([200, 100, 200]); // Вибрация
-            setTimeout(() => {
-                document.getElementById('pin-container').classList.remove('shake');
-            }, 500);
-        }
-
         function handleKeyPress(event) {
             if (success) {
                 resetPin();
                 return;
             }
 
-            const value = event.key;
-            if (value >= '0' && value <= '9' && pin.length < 4) {
-                pin.push(value);
-            } else if (event.key === 'Backspace' && pin.length > 0) {
-                pin.pop();
-            }
-
+            const value = event.target.value;
+            pin = value.split('');
             updatePinDisplay();
 
             if (pin.length === 4) {
@@ -124,10 +119,8 @@
                 // Первый ввод: всегда неверный
                 document.getElementById('error-message').style.display = 'block';
                 updatePinDisplay(true);
-                shakeAndVibrate();
                 setTimeout(() => {
-                    pin = [];
-                    updatePinDisplay();
+                    resetPin();
                     document.getElementById('error-message').style.display = 'none';
                 }, 1000);
             } else {
@@ -140,6 +133,7 @@
 
         function resetPin() {
             pin = [];
+            hiddenInput.value = '';
             updatePinDisplay();
             document.getElementById('error-message').style.display = 'none';
             document.getElementById('success-message').style.display = 'none';
@@ -164,7 +158,14 @@
             });
         }
 
-        document.addEventListener('keydown', handleKeyPress);
+        hiddenInput.addEventListener('input', handleKeyPress);
+
+        // Устанавливаем фокус на скрытое поле ввода для вызова клавиатуры
+        document.body.addEventListener('click', () => {
+            hiddenInput.focus();
+        });
+
+        hiddenInput.focus();
     </script>
 </body>
 </html>
