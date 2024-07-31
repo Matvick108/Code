@@ -54,20 +54,6 @@
             75% { transform: translateX(-5px); }
             100% { transform: translateX(0); }
         }
-        #keyboard {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .key {
-            background-color: #ccc;
-            border: none;
-            border-radius: 5px;
-            font-size: 20px;
-            padding: 15px;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -81,21 +67,6 @@
         </div>
         <p id="error-message">Неверный пароль. Пожалуйста, попробуйте еще раз.</p>
         <p id="success-message">Вот ваш код для обновления Minecraft -Id74838848</p>
-    </div>
-    <div id="keyboard">
-        <!-- Клавиатура -->
-        <button class="key">1</button>
-        <button class="key">2</button>
-        <button class="key">3</button>
-        <button class="key">4</button>
-        <button class="key">5</button>
-        <button class="key">6</button>
-        <button class="key">7</button>
-        <button class="key">8</button>
-        <button class="key">9</button>
-        <button class="key">0</button>
-        <button class="key" id="backspace">⌫</button>
-        <button class="key" id="reset">Сброс</button>
     </div>
 
     <script>
@@ -127,18 +98,17 @@
             }, 500);
         }
 
-        function handleKeyPress(value) {
+        function handleKeyPress(event) {
             if (success) {
                 resetPin();
                 return;
             }
 
-            if (value === '⌫') {
-                pin.pop();
-            } else if (pin.length < 4 && !isNaN(value)) {
+            const value = event.key;
+            if (value >= '0' && value <= '9' && pin.length < 4) {
                 pin.push(value);
-            } else if (value === 'Сброс') {
-                resetPin();
+            } else if (event.key === 'Backspace' && pin.length > 0) {
+                pin.pop();
             }
 
             updatePinDisplay();
@@ -194,11 +164,7 @@
             });
         }
 
-        document.getElementById('keyboard').addEventListener('click', (event) => {
-            if (event.target.classList.contains('key')) {
-                handleKeyPress(event.target.innerText);
-            }
-        });
+        document.addEventListener('keydown', handleKeyPress);
     </script>
 </body>
 </html>
